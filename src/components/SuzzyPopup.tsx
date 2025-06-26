@@ -1,11 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { MessageSquare, Search, Zap, Loader2, ArrowRight, Settings } from 'lucide-react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { queryGroqAI } from '@/services/groqApi';
-import ApiKeySetup from './ApiKeySetup';
+import React, { useState, useEffect } from "react";
+import {
+  MessageSquare,
+  Zap,
+  Loader2,
+  ArrowRight,
+  Settings,
+} from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { queryGroqAI } from "@/services/groqApi";
+import ApiKeySetup from "./ApiKeySetup";
 
 interface PageContent {
   title: string;
@@ -20,12 +26,12 @@ interface AIResponse {
   answer: string;
   confidence: number;
   sources: string[];
-  action?: 'highlight' | 'navigate';
+  action?: "highlight" | "navigate";
   target?: string;
 }
 
 const SuzzyPopup = () => {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [pageContent, setPageContent] = useState<PageContent | null>(null);
   const [response, setResponse] = useState<AIResponse | null>(null);
@@ -35,7 +41,7 @@ const SuzzyPopup = () => {
 
   useEffect(() => {
     // Check for stored API key
-    const storedKey = localStorage.getItem('groq_api_key');
+    const storedKey = localStorage.getItem("groq_api_key");
     if (storedKey) {
       setApiKey(storedKey);
       extractPageContent();
@@ -48,7 +54,7 @@ const SuzzyPopup = () => {
   };
 
   const handleResetApiKey = () => {
-    localStorage.removeItem('groq_api_key');
+    localStorage.removeItem("groq_api_key");
     setApiKey(null);
     setResponse(null);
     setShowSettings(false);
@@ -58,25 +64,27 @@ const SuzzyPopup = () => {
     setIsExtractingContent(true);
     try {
       // Check if we're in a Chrome extension environment
-      if (typeof chrome !== 'undefined' && chrome.runtime) {
-        const response = await chrome.runtime.sendMessage({ type: 'EXTRACT_CONTENT' });
+      if (typeof chrome !== "undefined" && chrome.runtime) {
+        const response = await chrome.runtime.sendMessage({
+          type: "EXTRACT_CONTENT",
+        });
         if (response?.success) {
           setPageContent(response.content);
         }
       } else {
         // Fallback for development environment
-        console.log('Chrome extension APIs not available - using mock data');
+        console.log("Chrome extension APIs not available - using mock data");
         setPageContent({
-          title: 'Demo Page',
-          url: 'https://example.com',
-          headings: [{ level: 'h1', text: 'Welcome to Demo' }],
-          paragraphs: ['This is a demo paragraph for testing.'],
-          links: [{ text: 'Demo Link', href: '#demo' }],
-          timestamp: new Date().toISOString()
+          title: "Demo Page",
+          url: "https://example.com",
+          headings: [{ level: "h1", text: "Welcome to Demo" }],
+          paragraphs: ["This is a demo paragraph for testing."],
+          links: [{ text: "Demo Link", href: "#demo" }],
+          timestamp: new Date().toISOString(),
         });
       }
     } catch (error) {
-      console.error('Failed to extract page content:', error);
+      console.error("Failed to extract page content:", error);
     } finally {
       setIsExtractingContent(false);
     }
@@ -87,43 +95,44 @@ const SuzzyPopup = () => {
     if (!query.trim() || !pageContent || !apiKey) return;
 
     setIsLoading(true);
-    
+
     try {
       // Use real Groq AI with the user's API key
       const aiResponse = await queryGroqAI(query, pageContent, apiKey);
       setResponse(aiResponse);
-      
+
       // Perform action if suggested
-      if (aiResponse.action === 'highlight' && aiResponse.target) {
-        if (typeof chrome !== 'undefined' && chrome.runtime) {
+      if (aiResponse.action === "highlight" && aiResponse.target) {
+        if (typeof chrome !== "undefined" && chrome.runtime) {
           chrome.runtime.sendMessage({
-            type: 'HIGHLIGHT_TEXT',
-            text: aiResponse.target
+            type: "HIGHLIGHT_TEXT",
+            text: aiResponse.target,
           });
         } else {
-          console.log('Would highlight:', aiResponse.target);
+          console.log("Would highlight:", aiResponse.target);
         }
       }
-      
-      if (aiResponse.action === 'navigate' && aiResponse.target) {
-        if (typeof chrome !== 'undefined' && chrome.runtime) {
+
+      if (aiResponse.action === "navigate" && aiResponse.target) {
+        if (typeof chrome !== "undefined" && chrome.runtime) {
           chrome.runtime.sendMessage({
-            type: 'NAVIGATE_TO_ELEMENT',
-            target: aiResponse.target
+            type: "NAVIGATE_TO_ELEMENT",
+            target: aiResponse.target,
           });
         } else {
-          console.log('Would navigate to:', aiResponse.target);
+          console.log("Would navigate to:", aiResponse.target);
         }
       }
     } catch (error) {
-      console.error('Error getting AI response:', error);
+      console.error("Error getting AI response:", error);
       setResponse({
-        answer: "Sorry, I encountered an error while processing your request. Please check your API key and try again.",
+        answer:
+          "Sorry, I encountered an error while processing your request. Please check your API key and try again.",
         confidence: 0.1,
         sources: [],
       });
     }
-    
+
     setIsLoading(false);
   };
 
@@ -135,7 +144,7 @@ const SuzzyPopup = () => {
     "What does this organization do?",
     "Take me to the contact page",
     "Does this site mention donations?",
-    "Find the pricing information"
+    "Find the pricing information",
   ];
 
   // Show API key setup if no key is configured
@@ -170,7 +179,7 @@ const SuzzyPopup = () => {
           <div className="space-y-2">
             <p className="text-xs font-medium text-gray-700">API Key Status</p>
             <p className="text-xs text-gray-500">
-              Key: {apiKey ? `${apiKey.substring(0, 7)}...` : 'Not set'}
+              Key: {apiKey ? `${apiKey.substring(0, 7)}...` : "Not set"}
             </p>
             <Button
               variant="outline"
@@ -194,10 +203,10 @@ const SuzzyPopup = () => {
           )}
           <div className="flex-1 min-w-0">
             <p className="text-xs font-medium text-gray-900 truncate">
-              {pageContent?.title || 'Loading page...'}
+              {pageContent?.title || "Loading page..."}
             </p>
             <p className="text-xs text-gray-500">
-              {isExtractingContent ? 'Analyzing content...' : 'Ready to help'}
+              {isExtractingContent ? "Analyzing content..." : "Ready to help"}
             </p>
           </div>
         </div>
@@ -234,12 +243,14 @@ const SuzzyPopup = () => {
           <div className="flex items-start gap-2 mb-2">
             <MessageSquare className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
             <div className="flex-1 min-w-0">
-              <Badge 
-                variant="secondary" 
+              <Badge
+                variant="secondary"
                 className={`text-xs mb-2 ${
-                  response.confidence > 0.7 ? 'bg-green-100 text-green-800' : 
-                  response.confidence > 0.5 ? 'bg-yellow-100 text-yellow-800' : 
-                  'bg-gray-100 text-gray-800'
+                  response.confidence > 0.7
+                    ? "bg-green-100 text-green-800"
+                    : response.confidence > 0.5
+                    ? "bg-yellow-100 text-yellow-800"
+                    : "bg-gray-100 text-gray-800"
                 }`}
               >
                 {Math.round(response.confidence * 100)}% confident
