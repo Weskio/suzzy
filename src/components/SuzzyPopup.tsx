@@ -30,6 +30,35 @@ interface AIResponse {
   target?: string;
 }
 
+// Helper function to make URLs clickable
+const makeUrlsClickable = (text: string) => {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = text.split(urlRegex);
+
+  return parts.map((part, index) => {
+    if (urlRegex.test(part)) {
+      return (
+        <a
+          key={index}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:text-blue-800 underline break-all"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (typeof chrome !== "undefined" && chrome.tabs) {
+              chrome.tabs.create({ url: part });
+            }
+          }}
+        >
+          {part}
+        </a>
+      );
+    }
+    return part;
+  });
+};
+
 const SuzzyPopup = () => {
   const [query, setQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -255,17 +284,19 @@ const SuzzyPopup = () => {
               >
                 {Math.round(response.confidence * 100)}% confident
               </Badge>
-              <p className="text-sm text-gray-900 leading-relaxed">
-                {response.answer}
-              </p>
-              {response.sources.length > 0 && (
-                <div className="mt-2 pt-2 border-t border-gray-100">
-                  <p className="text-xs text-gray-500 mb-1">Sources found:</p>
-                  <p className="text-xs text-gray-700 italic">
-                    "{response.sources[0].substring(0, 80)}..."
-                  </p>
-                </div>
-              )}
+              <div className="overflow-y-auto max-h-48 pr-2">
+                <p className="text-sm text-gray-900 leading-relaxed">
+                  {makeUrlsClickable(response.answer)}
+                </p>
+                {response.sources.length > 0 && (
+                  <div className="mt-2 pt-2 border-t border-gray-100">
+                    <p className="text-xs text-gray-500 mb-1">Sources found:</p>
+                    <p className="text-xs text-gray-700 italic">
+                      "{response.sources[0].substring(0, 80)}..."
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </Card>
